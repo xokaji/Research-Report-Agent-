@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Research Agent UI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f1e8;
+      --ink: #161616;
+      --card: #fffdf6;
+      --accent: #d14a2f;
+      --accent-2: #0a7f6f;
+      --muted: #615f59;
+      --line: #d8d1c3;
+      --ok: #1c7c2b;
+      --err: #b3261e;
+      --shadow: 0 14px 28px rgba(22, 22, 22, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Space Grotesk", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% -5%, #fcd9ad 0%, transparent 40%),
+        radial-gradient(800px 500px at 95% 20%, #cde8e0 0%, transparent 38%),
+        repeating-linear-gradient(
+          45deg,
+          rgba(255,255,255,0.25),
+          rgba(255,255,255,0.25) 8px,
+          rgba(255,255,255,0.05) 8px,
+          rgba(255,255,255,0.05) 16px
+        ),
+        var(--bg);
+      padding: 28px 16px 40px;
+    }
+
+    .shell {
+      max-width: 1080px;
+      margin: 0 auto;
+      animation: rise 450ms ease-out;
+    }
+
+    .hero {
+      margin-bottom: 16px;
+      border: 2px solid var(--ink);
+      background: linear-gradient(155deg, #fff8eb 0%, #f9f3e5 75%);
+      box-shadow: var(--shadow);
+      border-radius: 18px;
+      padding: 20px;
+    }
+
+    .kicker {
+      display: inline-block;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(209, 74, 47, 0.1);
+      border: 1px solid rgba(209, 74, 47, 0.3);
+      border-radius: 999px;
+      padding: 5px 9px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2vw + 1rem, 2.3rem);
+      line-height: 1.1;
+    }
+
+    .sub {
+      margin: 10px 0 0;
+      color: var(--muted);
+      max-width: 68ch;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1.1fr 1fr;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 14px;
+      font-size: 0.92rem;
+      font-family: "IBM Plex Mono", monospace;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .panel-body { padding: 14px; }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    textarea,
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      font: inherit;
+      padding: 10px 12px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 140ms ease, transform 140ms ease;
+    }
+
+    textarea { min-height: 102px; resize: vertical; }
+
+    textarea:focus,
+    input[type="text"]:focus {
+      border-color: var(--accent-2);
+      transform: translateY(-1px);
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    button {
+      border: 1px solid var(--ink);
+      border-radius: 11px;
+      background: var(--ink);
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+    }
+
+    button:hover:enabled {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.18);
+    }
+
+    button.secondary {
+      background: transparent;
+      color: var(--ink);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      min-height: 1.3rem;
+    }
+
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+
+    .timeline {
+      max-height: 300px;
+      overflow: auto;
+      display: grid;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .evt {
+      border-left: 3px solid var(--accent-2);
+      background: #fcfffd;
+      padding: 8px 10px;
+      border-radius: 4px 8px 8px 4px;
+    }
+
+    .evt .meta {
+      display: block;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .report-wrap {
+      margin-top: 16px;
+    }
+
+    .report {
+      min-height: 260px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      background: #fff;
+      white-space: pre-wrap;
+      line-height: 1.55;
+      font-size: 0.95rem;
+      overflow-wrap: anywhere;
+    }
+
+    .meta-grid {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <span class="kicker">Research Agent UI</span>
+      <h1>Run Research With Live Progress</h1>
+      <p class="sub">
+        Enter a topic, stream progress from the backend pipeline, and read the generated report in one place.
+      </p>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <div class="panel-head">Input</div>
+        <div class="panel-body">
+          <label for="topic">Topic to research</label>
+          <textarea id="topic" placeholder="Example: Agentic AI trends 2026"></textarea>
+
+          <div class="row">
+            <div style="flex: 1 1 260px;">
+              <label for="sessionId">Session ID (optional)</label>
+              <input id="sessionId" type="text" placeholder="my-run-01" />
+            </div>
+          </div>
+
+          <div class="row">
+            <label class="check">
+              <input id="keepMemory" type="checkbox" />
+              Keep memory after run
+            </label>
+          </div>
+
+          <div class="row">
+            <button id="runBtn" type="button">Start Research</button>
+            <button id="sampleBtn" class="secondary" type="button">Use Sample Topic</button>
+            <button id="clearBtn" class="secondary" type="button">Clear</button>
+          </div>
+
+          <div id="status" class="status">Idle</div>
+
+          <div class="meta-grid">
+            <div>API: <strong>/research/stream</strong></div>
+            <div>Method: <strong>POST</strong></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">Live Progress</div>
+        <div class="panel-body">
+          <div id="timeline" class="timeline"></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel report-wrap">
+      <div class="panel-head">Final Report</div>
+      <div class="panel-body">
+        <div id="report" class="report">No report yet.</div>
+        <div id="resultMeta" class="meta-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const topicEl = document.getElementById("topic");
+    const sessionEl = document.getElementById("sessionId");
+    const keepMemoryEl = document.getElementById("keepMemory");
+    const runBtn = document.getElementById("runBtn");
+    const sampleBtn = document.getElementById("sampleBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const statusEl = document.getElementById("status");
+    const timelineEl = document.getElementById("timeline");
+    const reportEl = document.getElementById("report");
+    const resultMetaEl = document.getElementById("resultMeta");
+
+    const sampleTopic = "Impact of large language models on software engineering in 2026";
+
+    function setStatus(text, kind = "") {
+      statusEl.textContent = text;
+      statusEl.className = `status ${kind}`.trim();
+    }
+
+    function appendEvent(phase, message) {
+      const item = document.createElement("div");
+      item.className = "evt";
+
+      const meta = document.createElement("span");
+      meta.className = "meta";
+      meta.textContent = `${new Date().toLocaleTimeString()} · ${phase}`;
+
+      const text = document.createElement("div");
+      text.textContent = message;
+
+      item.appendChild(meta);
+      item.appendChild(text);
+      timelineEl.appendChild(item);
+      timelineEl.scrollTop = timelineEl.scrollHeight;
+    }
+
+    function setRunningState(isRunning) {
+      runBtn.disabled = isRunning;
+      topicEl.disabled = isRunning;
+      sessionEl.disabled = isRunning;
+      keepMemoryEl.disabled = isRunning;
+      sampleBtn.disabled = isRunning;
+    }
+
+    function clearOutput() {
+      timelineEl.innerHTML = "";
+      reportEl.textContent = "No report yet.";
+      resultMetaEl.innerHTML = "";
+      setStatus("Idle");
+    }
+
+    async function runResearch() {
+      const topic = topicEl.value.trim();
+      const sessionId = sessionEl.value.trim();
+      if (!topic) {
+        setStatus("Please enter a topic first.", "err");
+        topicEl.focus();
+        return;
+      }
+
+      clearOutput();
+      setRunningState(true);
+      setStatus("Submitting request...", "");
+
+      try {
+        const response = await fetch("/research/stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic,
+            session_id: sessionId || null,
+            keep_memory: keepMemoryEl.checked,
+          }),
+        });
+
+        if (!response.ok || !response.body) {
+          const detail = await response.text();
+          throw new Error(`HTTP ${response.status}: ${detail}`);
+        }
+
+        setStatus("Running research pipeline...", "");
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const chunks = buffer.split("\n\n");
+          buffer = chunks.pop() || "";
+
+          for (const chunk of chunks) {
+            if (!chunk.trim() || chunk.startsWith(":")) continue;
+
+            let eventName = "message";
+            let dataLine = "";
+
+            for (const line of chunk.split("\n")) {
+              if (line.startsWith("event:")) eventName = line.slice(6).trim();
+              if (line.startsWith("data:")) dataLine += line.slice(5).trim();
+            }
+
+            if (!dataLine) continue;
+            const data = JSON.parse(dataLine);
+
+            if (eventName === "progress") {
+              appendEvent(data.phase || "progress", data.message || "...");
+            } else if (eventName === "done") {
+              reportEl.textContent = data.report || "No report returned.";
+              resultMetaEl.innerHTML = `
+                <div>Saved to: <strong>${data.saved_to || "n/a"}</strong></div>
+                <div>Searches: <strong>${data.searches ?? "n/a"}</strong></div>
+                <div>Research: <strong>${data.timings?.research ?? "n/a"}s</strong></div>
+                <div>Total: <strong>${data.timings?.total ?? "n/a"}s</strong></div>
+              `;
+              setStatus("Completed successfully.", "ok");
+              appendEvent("done", "Pipeline finished and report generated.");
+            } else if (eventName === "error") {
+              setStatus(`Error: ${data.detail || "Unknown error"}`, "err");
+              appendEvent("error", data.detail || "Unknown error");
+            }
+          }
+        }
+      } catch (err) {
+        setStatus(`Failed: ${err.message}`, "err");
+        appendEvent("error", err.message);
+      } finally {
+        setRunningState(false);
+      }
+    }
+
+    runBtn.addEventListener("click", runResearch);
+    sampleBtn.addEventListener("click", () => {
+      topicEl.value = sampleTopic;
+      topicEl.focus();
+    });
+    clearBtn.addEventListener("click", clearOutput);
+
+    topicEl.value = "Agentic AI trends 2026";
+  </script>
+</body>
+</html>
