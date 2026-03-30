@@ -181,6 +181,19 @@ async def research_stream(req: ResearchRequest):
     )
 
 
+@app.get("/research/stream")
+def research_stream_help():
+    """Helpful response when endpoint is opened directly in browser."""
+    return {
+        "message": "Use POST /research/stream with JSON body to start streaming research.",
+        "example": {
+            "topic": "Agentic AI trends 2026",
+            "session_id": "optional-session-id",
+            "keep_memory": False,
+        },
+    }
+
+
 # ── Health check ──────────────────────────────────────────────────────────────
 
 @app.get("/health")

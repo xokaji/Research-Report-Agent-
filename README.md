@@ -259,6 +259,10 @@ while (true) {
 }
 ```
 
+Note:
+- Opening `/research/stream` directly in a browser tab used to return `405 Method Not Allowed` because the stream endpoint expects `POST`.
+- The server now also supports `GET /research/stream` with a help message, but real streaming runs only on `POST`.
+
 ### `GET /health`
 ```json
 { "status": "ok", "version": "2.0.0", "timestamp": "2025-03-30T14:00:00" }
